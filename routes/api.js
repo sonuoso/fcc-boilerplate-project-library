@@ -46,12 +46,12 @@ module.exports = function (app) {
       if (title) {
         book.save().then((data) => res.send(data));
       } else {
-        res.send("missing required field title");
+        res.json("missing required field title");
       }
     })
 
     .delete(function (req, res) {
-      Book.deleteMany().then(() => res.send("complete delete successful"));
+      Book.deleteMany().then(() => res.json("complete delete successful"));
     });
 
   app
@@ -61,8 +61,15 @@ module.exports = function (app) {
 
       if (bookid) {
         Book.findById(bookid)
-          .then((data) => res.send(data))
-          .catch(() => res.send("no book exists"));
+          .then(function (data) {
+            //Check if data is true; freeCodeCamp test cases return {} for for data for an invalid id instead of catching an error and returning 'no book exists'
+            if (data) {
+              res.send(data);
+            } else {
+              res.json("no book exists");
+            }
+          })
+          .catch(() => res.json("no book exists"));
       }
     })
 
@@ -78,13 +85,17 @@ module.exports = function (app) {
       if (bookid) {
         if (comment) {
           Book.findByIdAndUpdate(bookid, bookComment, { new: true })
-            .then((data) => res.send(data))
-            .catch(() => res.send("no book exists"));
+            .then(function (data) {
+              if (data) {
+                res.send(data);
+              } else {
+                res.json("no book exists");
+              }
+            })
+            .catch(() => res.json("no book exists"));
         } else {
-          res.send("missing required field comment");
+          res.json("missing required field comment");
         }
-      } else {
-        res.status(404).json({ error: "missing _id" });
       }
     })
 
@@ -92,8 +103,14 @@ module.exports = function (app) {
       let bookid = req.params.id;
       if (bookid) {
         Book.findByIdAndRemove(bookid)
-          .then(() => res.send("delete successful"))
-          .catch(() => res.send("no book exists"));
+          .then(function (data) {
+            if (data) {
+              res.json("delete successful");
+            } else {
+              res.json("no book exists");
+            }
+          })
+          .catch(() => res.json("no book exists"));
       }
     });
 };
